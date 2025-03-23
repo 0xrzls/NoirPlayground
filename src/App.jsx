@@ -1,25 +1,49 @@
 import { useState } from "react";
 import Editor from "@monaco-editor/react";
+import { SiDocsify } from "react-icons/si";
+import { BiLink } from "react-icons/bi";
+import { LuFileCode } from "react-icons/lu";
+import "./App.css";
 
 const templates = {
-  "Basic Assert": "fn main() {\n  assert(1 + 1 == 2);\n}",
-  "Poseidon Hash": "use dep::std::hash::poseidon;\n\nfn main() {\n  let x = poseidon([1, 2, 3]);\n}",
-  "Failing Test": "fn main() {\n  assert(2 + 2 == 5);\n}"
+  "Basic Assert": {
+    code: `fn main() {\n    assert(1 + 1 == 2);\n}`,
+    desc: "Test sederhana menggunakan assert."
+  },
+  "Poseidon Hash": {
+    code: `use dep::std::hash::poseidon;\n\nfn main() {\n    let x = poseidon([1, 2, 3]);\n}`,
+    desc: "Contoh hash dengan Poseidon."
+  },
+  "Token Transfer": {
+    code: `struct Account {\n    pub balance: u32\n}\n\nfn main() {\n    let sender = Account { balance: 100 };\n    let receiver = Account { balance: 0 };\n    let amount = 30;\n\n    assert(sender.balance >= amount);\n    let new_sender_balance = sender.balance - amount;\n    let new_receiver_balance = receiver.balance + amount;\n\n    assert(new_sender_balance == 70);\n    assert(new_receiver_balance == 30);\n}`,
+    desc: "Logika ZK token transfer antar akun."
+  },
+  "Failing Test": {
+    code: `fn main() {\n    assert(2 + 2 == 5);\n}`,
+    desc: "Contoh test yang akan gagal."
+  }
 };
 
 function App() {
-  const [code, setCode] = useState(templates["Basic Assert"]);
-  const [output, setOutput] = useState("Tulis kode Noir lalu klik Compile!");
+  const [selected, setSelected] = useState("Basic Assert");
+  const [code, setCode] = useState(templates[selected].code);
+  const [output, setOutput] = useState("Tulis kode Noir lalu klik tombol di bawah.");
+  const [loading, setLoading] = useState(false);
 
-  async function handleCompile() {
-    setOutput("⏳ Mengirim kode ke server...");
+  const handleSelect = (key) => {
+    setSelected(key);
+    setCode(templates[key].code);
+    setOutput("Tulis kode Noir lalu klik tombol di bawah.");
+  };
+
+  const handleCompile = async () => {
+    setLoading(true);
+    setOutput("⏳ Mengompilasi kode...");
 
     try {
-      const res = await fetch("http://207.148.3.95:4000/compile", {
+      const res = await fetch("http://45.76.101.191:4000/compile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code })
       });
 
@@ -32,45 +56,119 @@ function App() {
       }
     } catch (err) {
       setOutput("❌ NETWORK ERROR:\n" + err.message);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
+  const handleProve = async () => {
+    setLoading(true);
+    setOutput("⏳ Membuktikan kode...");
+
+    try {
+      const res = await fetch("http://45.76.101.191:4000/prove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        setOutput("❌ ERROR:\n" + data.error);
+      } else {
+        const { noir_version, hash } = data.compiled || {};
+        const proof = data.proof || "-";
+
+        const result = `
+✅ BERHASIL:
+
+Noir Version: ${noir_version || "unknown"}
+Hash: ${hash || "unknown"}
+Proof: ${proof}
+        `.trim();
+
+        setOutput(result);
+      }
+    } catch (err) {
+      setOutput("❌ NETWORK ERROR:\n" + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ backgroundColor: "#111", color: "#eee", minHeight: "100vh", padding: "20px" }}>
-      <h2>Noir Playground (Connected to Real Compiler)</h2>
+    <>
+      <nav className="navbar">
+        <div className="navbar-content">
+          <img src="/NPG.svg" alt="Logo" className="logo" />
+          <a
+            href="https://docs.noir-lang.org"
+            target="_blank"
+            rel="noreferrer"
+            title="Buka Dokumentasi"
+          >
+            <SiDocsify className="docs-icon" />
+          </a>
+        </div>
+      </nav>
 
-      <select onChange={(e) => setCode(templates[e.target.value])}>
-        {Object.keys(templates).map((k) => (
-          <option key={k}>{k}</option>
-        ))}
-      </select>
+      <div className="container">
+        <div className="menu-dropdown">
+          <select
+            value={selected}
+            onChange={(e) => handleSelect(e.target.value)}
+            className="dropdown"
+          >
+            {Object.keys(templates).map((key) => (
+              <option key={key} value={key}>
+                {key}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <Editor
-        height="50vh"
-        defaultLanguage="rust"
-        theme="vs-dark"
-        value={code}
-        onChange={(val) => setCode(val || "")}
-      />
+        <div className="editor-output-wrap">
+          <div className="editor-card">
+            <Editor
+              height="60vh"
+              defaultLanguage="rust"
+              theme="vs-dark"
+              value={code}
+              onChange={(val) => setCode(val || "")}
+            />
+          </div>
+          <pre className="output desktop-only">{output}</pre>
+        </div>
 
-      <button
-        onClick={handleCompile}
-        style={{ marginTop: "10px", padding: "10px 20px", fontWeight: "bold" }}
-      >
-        Compile
-      </button>
+        {/* Run bar */}
+        <div className="run-bar">
+          <div className="run-icons">
+            <BiLink title="Copy link" />
+            <LuFileCode title="Embed" />
+          </div>
+          <div className="input-wrapper">
+            <input
+              type="text"
+              placeholder="Program arguments"
+              className="run-input"
+              disabled
+            />
+            <span className="help-icon">?</span>
+          </div>
+          <button className="run-button" onClick={handleCompile} disabled={loading}>
+            {loading ? "Compiling..." : "Compile"}
+          </button>
+          <button className="run-button" onClick={handleProve} disabled={loading}>
+            {loading ? "Proving..." : "Prove"}
+          </button>
+        </div>
 
-      <pre
-        style={{
-          marginTop: "20px",
-          background: "#222",
-          padding: "15px",
-          whiteSpace: "pre-wrap"
-        }}
-      >
-        {output}
-      </pre>
-    </div>
+        <div className="mobile-output">
+          <pre className="output">{output}</pre>
+        </div>
+      </div>
+    </>
   );
 }
 
