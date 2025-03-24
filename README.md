@@ -1,12 +1,35 @@
-# React + Vite
+# Noir Playground
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Noir Playground** is a browser-based platform to write, compile, and generate ZK proofs from Noir code. Supports both manual editor input and `.nr` file uploads. It uses `nargo` and `barretenberg` under the hood for compilation and proving.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Next Plan – Roadmap for Noir Playground
 
-## Expanding the ESLint configuration
+[ ] Aztec Devnet Integration
+Allow users to compile and deploy Noir contracts directly to the Aztec Devnet once access is granted.
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+[ ] Wallet SDK Integration
+Enable wallet connection using @aztec/accounts or shield-labs/wallet-sdk to interact with private L2 accounts.
+
+[ ] ACIR & Proof Explorer
+Visualize ACIR bytecode, ABI, and proof output in a structured & user-friendly viewer.
+
+[ ] Live Verification via Barretenberg
+Add a UI tab to verify generated proofs using the verifier directly from the frontend/backend.
+
+[ ] Smart Templates
+Add ready-to-use Noir templates (e.g. ZK Token, Voting, Access Control) with explanations.
+
+[ ] Shareable Links & Embed Mode
+Generate unique links to share code snippets or embed the Playground in other docs/dapps.
+
+[ ] Error Highlighting & Fix Suggestions
+Add smart error detection to provide inline feedback and fixes when compilation fails.
+
+[ ] Aztec Sandbox Upload Support
+Optionally drag & drop artifacts to Aztec’s official playground or Remix plugin.
+
+
+
+
