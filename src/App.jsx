@@ -10,8 +10,16 @@ function App() {
   const [code, setCode] = useState("fn main() {\n    assert(1 + 1 == 2);\n}");
   const [output, setOutput] = useState("Tulis kode Noir lalu klik Run!");
   const [loading, setLoading] = useState(false);
+  const [fileContent, setFileContent] = useState("");
 
   const handleCompile = async () => {
+    const selectedCode = isManual ? code : fileContent;
+
+    if (!selectedCode.trim()) {
+      alert("Tidak ada kode untuk dikompilasi.");
+      return;
+    }
+
     setLoading(true);
     setOutput("⏳ Mengirim kode ke server...");
 
@@ -19,7 +27,7 @@ function App() {
       const res = await fetch("http://45.76.101.191:4000/compile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ code: selectedCode })
       });
 
       const data = await res.json();
@@ -35,6 +43,23 @@ function App() {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith(".nr")) {
+      alert("Hanya file .nr yang diperbolehkan.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFileContent(event.target.result);
+      setCode(event.target.result);
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <>
       <nav className="navbar">
@@ -47,21 +72,19 @@ function App() {
       </nav>
 
       <div className="container">
-        <div className="editor-card">
-          <div className="mode-toggle">
-            <button
-              className={`toggle-button ${isManual ? "active" : ""}`}
-              onClick={() => setIsManual(true)}
-            >
-              MANUAL
-            </button>
-            <button
-              className={`toggle-button ${!isManual ? "active" : ""}`}
-              onClick={() => setIsManual(false)}
-            >
-              UPLOAD
-            </button>
-          </div>
+        <div className="mode-toggle">
+          <button
+            className={`toggle-button ${isManual ? "active" : ""}`}
+            onClick={() => setIsManual(true)}
+          >
+            MANUAL
+          </button>
+          <button
+            className={`toggle-button ${!isManual ? "active" : ""}`}
+            onClick={() => setIsManual(false)}
+          >
+            UPLOAD
+          </button>
         </div>
 
         <div className="editor-output-wrap">
@@ -75,7 +98,10 @@ function App() {
                 onChange={(val) => setCode(val || "")}
               />
             ) : (
-              <input type="file" className="file-upload" />
+              <>
+                <input type="file" className="file-upload" onChange={handleFileChange} />
+                <pre className="upload-preview">{fileContent || "// Upload file .nr untuk melihat isi di sini."}</pre>
+              </>
             )}
           </div>
           <pre className="output desktop-only">{output}</pre>
@@ -87,15 +113,14 @@ function App() {
             <LuFileCode title="Embed" />
           </div>
           <div className="input-wrapper">
-            <input
-              type="text"
-              placeholder="Program arguments"
-              className="run-input"
-              disabled
-            />
+            <input type="text" placeholder="Program arguments" className="run-input" disabled />
             <span className="help-icon">?</span>
           </div>
-          <button className="run-button" onClick={handleCompile} disabled={loading}>
+          <button
+            className="run-button"
+            onClick={handleCompile}
+            disabled={loading || (!isManual && !fileContent)}
+          >
             {loading ? "Running..." : "Run"}
           </button>
         </div>

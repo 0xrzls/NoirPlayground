@@ -139,6 +139,7 @@ html, body, #root {
   color: #eee;
 }
 
+/* FILE UPLOAD */
 .file-upload {
   padding: 12px;
   background: #1a1a1a;
@@ -146,6 +147,21 @@ html, body, #root {
   border-radius: 6px;
   color: #ccc;
   width: 100%;
+  margin-bottom: 12px;
+}
+
+.upload-preview {
+  background: #111;
+  color: #eee;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  height: 60vh; /* default for desktop */
 }
 
 /* RUN BAR */
@@ -292,5 +308,9 @@ html, body, #root {
 
   .toggle-button {
     font-size: 13px;
+  }
+
+  .upload-preview {
+    height: 52vh; /* override khusus mobile */
   }
 }
